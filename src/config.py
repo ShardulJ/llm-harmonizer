@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    provider : str = "dummy"
+    provider : str = "mock"
 
     hf_model_id : str | None = None
     hf_token : str | None = None

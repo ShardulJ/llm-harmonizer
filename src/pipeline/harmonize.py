@@ -2,13 +2,14 @@ import json
 from src.config import settings
 from src.prompts.templates import USER_PROMPT_TEMPLATE, SYSTEM_PROMPT
 from src.llm.hf_provider import HFProvider
+from src.llm.mock_provider import MockProvider
 from src.mapping.normalizer import extract_age_sex
 from src.mapping.postprocess import to_fhir_bundle
 
 async def get_provider():
     if settings.provider == "hf" and settings.hf_token and settings.hf_model_id:
         return HFProvider()
-    return None
+    return MockProvider()
 
 async def harmonize(note_text: str) -> dict:
     provider = await get_provider()
