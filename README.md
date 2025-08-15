@@ -4,3 +4,8 @@ This is a **GenAI (LLM) extraction service**: it converts free‑text clinical n
 
 ## What & Why
 **Goal:** Robustly extract a small, well‑defined JSON from messy notes, normalize it, and emit FHIR. Keeping output strict JSON makes downstream post‑processing deterministic and evaluation easy.
+
+** PipeLine **
+1) **Prompted extraction** -> JSON `{patient, conditions[], medications[], encounter_date}`
+2) **Normalization** → light RxNorm/SNOMED mapping (extensible)
+3) **FHIR assembly** → Bundle with Patient, Condition, MedicationStatement
