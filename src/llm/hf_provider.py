@@ -13,21 +13,21 @@ class HFProvider(LLMProvider):
             raise ValueError("HFProvider: hf_token is required")
         self.url = f"https://api-inference.huggingface.co/models/{self.model_id}"
 
-        async def infer (self, system_prompt: str, user_prompt: str) -> str:
-            prompt = f"[SYSTEM]\n{system_prompt}\n[USER]\n{user_prompt}\n[ASSISTANT]\n"
-            headers = {"Authorization": f"Bearer {self.token}"}
-            payload = {
-                "inputs": prompt,
-                "parameters" : {
-                    "max_new_tokens" : 512,
-                    "temperature" : 0.1,
-                    "return_full_text": False
-                }    
-            }
+    async def infer (self, system_prompt: str, user_prompt: str) -> str:
+        prompt = f"[SYSTEM]\n{system_prompt}\n[USER]\n{user_prompt}\n[ASSISTANT]\n"
+        headers = {"Authorization": f"Bearer {self.token}"}
+        payload = {
+            "inputs": prompt,
+            "parameters" : {
+                "max_new_tokens" : 512,
+                "temperature" : 0.1,
+                "return_full_text": False
+            }    
+        }
 
-            async with httpx.AsyncClient(timeout=120) as client:
-                r = await client.post(self.url, headers=headers, json=payload)
-                r.raise_for_status()
-                data = r.json()
-                text = data[0]["generated_text"]
-                return text.strip()
+        async with httpx.AsyncClient(timeout=120) as client:
+            r = await client.post(self.url, headers=headers, json=payload)
+            r.raise_for_status()
+            data = r.json()
+            text = data[0]["generated_text"]
+            return text.strip()
