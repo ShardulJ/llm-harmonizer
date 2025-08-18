@@ -16,7 +16,7 @@ def condition_f1(pred: List[Dict[str, Any]], gold: List[Dict[str, Any]]):
     pc = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     rc = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     f1 = 2 * (pc * rc) / (pc + rc) if (pc + rc) > 0 else 0.0
-    return {"precision": pc, "recall": rc, f1: f1}
+    return {"precision": pc, "recall": rc, "f1": f1}
     
 def medication_f1(pred: List[Dict[str, Any]], gold: List[Dict[str, Any]]):
     return condition_f1([{"name" : m.get("name", "")} for m in pred], [{"name" : m.get("name", "")} for m in gold])
