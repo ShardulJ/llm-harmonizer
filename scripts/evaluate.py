@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 import asyncio
 from typing import Dict, Any, List
@@ -43,7 +44,7 @@ async def main():
         pairs.append({"id": note["id"], "gold": gold, "pred": pred, "demo": demo})
 
         def cond_metric(p):
-            return condition_f1(p["pred"].get("conditions", []), p["gold"].get("conditions", []))
+            return float(condition_f1(p["pred"].get("conditions", []), p["gold"].get("conditions", []))["f1"])
         
         def med_metric(p):
             return medication_f1(p["pred"].get("meds", []), p["gold"].get("meds", []))
@@ -55,14 +56,14 @@ async def main():
 
         rmse_vals = [dose_rmse(p["pred"].get("meds", []), p["gold"].get("meds", [])) for p in pairs]
         rmse_vals = [v for v in rmse_vals if v is not None]
-        dose_rmse = sum(rmse_vals) / len(rmse_vals) if rmse_vals else 0.0
+        dose_rmse_vals = sum(rmse_vals) / len(rmse_vals) if rmse_vals else 0.0
 
         print({
             "condition_f1": round(cond_f1, 4),
             condition_ci: [round(condition_ci[0], 4), round(condition_ci[1], 4)],
             "medication_f1": round(med_f1, 4),
             medication_ci: [round(medication_ci[0], 4), round(medication_ci[1], 4)],
-            "dose_rmse": round(dose_rmse, 4)
+            "dose_rmse": round(dose_rmse_vals, 4)
         })
 
         from collections import defaultdict

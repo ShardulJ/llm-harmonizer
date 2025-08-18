@@ -19,7 +19,10 @@ def condition_f1(pred: List[Dict[str, Any]], gold: List[Dict[str, Any]]):
     return {"precision": pc, "recall": rc, "f1": f1}
     
 def medication_f1(pred: List[Dict[str, Any]], gold: List[Dict[str, Any]]):
-    return condition_f1([{"name" : m.get("name", "")} for m in pred], [{"name" : m.get("name", "")} for m in gold])
+    return condition_f1(
+        [{"name": m.get("name", "")} for m in pred],
+        [{"name": m.get("name", "")} for m in gold]
+    )
 
 def dose_rmse(pred: List[Dict[str, Any]], gold: List[Dict[str, Any]]):
     import math
