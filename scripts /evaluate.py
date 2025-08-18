@@ -31,7 +31,55 @@ def bundle_to_label(bundle: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 async def main():
-    pass 
+    notes = [json.loads(l) for l in open("data/synt/notes.jsonl")] 
+    labels = {json.loads(l)["id"]: json.loads(l)["label"] for l in open("data/synt/labels.jsonl")}
+
+    pairs: List[Dict[str, Any]] = []
+    for note in notes:
+        gold = labels[note["id"]]
+        bundle = await harmonize(note["note"])
+        pred = bundle_to_label(bundle)
+        demo = {"age": gold.get("patient", {}).get("age"), "sex": gold.get("patient", {}).get("sex")}
+        pairs.append({"id": note["id"], "gold": gold, "pred": pred, "demo": demo})
+
+        def cond_metric(p):
+            return condition_f1(p["pred"].get("conditions", []), p["gold"].get("conditions", []))
+        
+        def med_metric(p):
+            return medication_f1(p["pred"].get("meds", []), p["gold"].get("meds", []))
+        
+        condition_f1 = sum(cond_metric(p) for p in pairs) / len(pairs)
+        medication_f1 = sum(med_metric(p) for p in pairs) / len(pairs)
+        condition_ci = bootstrap_ci(pairs, cond_metric)
+        medication_ci = bootstrap_ci(pairs, med_metric)
+
+        rmse_vals = [dose_rmse(p["pred"].get("meds", []), p["gold"].get("meds", [])) for p in pairs]
+        rmse_vals = [v for v in rmse_vals if v is not None]
+        dose_rmse = sum(rmse_vals) / len(rmse_vals) if rmse_vals else 0.0
+
+        print({
+            "condition_f1": round(condition_f1, 4),
+            condition_ci: [round(condition_ci[0], 4), round(condition_ci[1], 4)],
+            "medication_f1": round(medication_f1, 4),
+            medication_ci: [round(medication_ci[0], 4), round(medication_ci[1], 4)],
+            "dose_rmse": round(dose_rmse, 4)
+        })
+
+        from collections import defaultdict
+        by_age = slice_by_age(pairs)
+        age_report = OrderedDict()
+        for k, vs in by_age.items():
+            if not vs: continue
+            age_report[k] = round(sum(cond_metric(p) for p in vs) / len(vs), 4)
+
+        by_sex = slice_by_sex(pairs)
+        sex_report = OrderedDict()
+        for k, vs in by_sex.items():
+            if not vs: continue
+            sex_report[k] = round(sum(cond_metric(p) for p in vs) / len(vs), 4)
+
+        print({"slice age": age_report, "slice sex": sex_report})
+
 
 if __name__ == "__main__":
     asyncio.run(main())
